@@ -1,13 +1,49 @@
-use axum::{http::StatusCode, response::IntoResponse};
+use axum::{extract::Query, Json};
+use serde::{Deserialize, Serialize};
 
-fn request_georef() 
+use crate::{
+    errors::AppError,
+    services::georef::{self, GeoRefIn},
+};
 
-pub fn get_recomendacion(
+#[derive(Default, Serialize, Deserialize)]
+struct Direccion {
+    provincia: String,
     calle: String,
-    altura: String,
+    altura: i16,
+    latitud: f32,
+    longitud: f32,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+struct Recomendacion {
+    nombre: String,
+    apellido: String,
+    direccion: Direccion,
+    cantidad_recomendada: i16,
+}
+
+#[derive(Deserialize)]
+pub struct ParamsRecomendacion {
+    calle: String,
+    altura: i16,
     provincia: Option<String>,
     radio_max: Option<i32>,
-) -> impl IntoResponse {
-    
-    (StatusCode::ACCEPTED, "")
+}
+
+pub async fn get_recomendacion(
+    Query(params): Query<ParamsRecomendacion>,
+) -> Result<Json<GeoRefIn>, AppError> {
+    let ParamsRecomendacion {
+        calle,
+        altura,
+        provincia,
+        radio_max,
+    } = params;
+
+    let georef_request = georef::request_georef(calle, altura, provincia)?;
+
+    let ubicacion: GeoRefIn = georef_request.into_json()?;
+
+    Ok(Json(ubicacion))
 }
