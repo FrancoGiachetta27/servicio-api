@@ -42,7 +42,7 @@ struct Coordenadas {
 #[derive(Deserialize, Serialize)]
 struct Direccion {
     altura: Altura,
-    departamento: Departamento,
+    departamento: Option<Departamento>,
     calle: Calle,
     localidad_censal: Localidad,
     nomenclatura: String,

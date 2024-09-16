@@ -1,4 +1,4 @@
-use axum::{extract::rejection::JsonRejection, http::StatusCode, response::IntoResponse, Json};
+use axum::{extract::rejection::JsonRejection, http::{StatusCode, Uri}, response::IntoResponse, Json};
 use serde::Serialize;
 
 pub enum AppError {
@@ -61,4 +61,19 @@ impl From<std::io::Error> for AppError {
     fn from(value: std::io::Error) -> Self {
         Self::IoError(value)
     }
+}
+
+pub async fn handle_404(uri: Uri) -> impl IntoResponse {
+    #[derive(Serialize)]
+    struct ErrorMessage {
+        status: u16,
+        message: String,
+    }
+
+    let error = ErrorMessage {
+        status: StatusCode::NOT_FOUND.as_u16(),
+        message: format!("EndPoint incorreto: {}", uri.path()),
+    };
+
+    (StatusCode::NOT_FOUND, Json(error))
 }

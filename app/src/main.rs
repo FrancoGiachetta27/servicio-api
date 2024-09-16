@@ -1,4 +1,5 @@
 use axum::Router;
+use errors::handle_404;
 use std::env;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
@@ -19,7 +20,9 @@ async fn main() {
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), port);
 
     // build our application with a route
-    let app = Router::new().nest("/api", routes::api_routes());
+    let app = Router::new()
+        .nest("/api", routes::api_routes())
+        .fallback(handle_404);
     // add documentation generator
 
     let listener = tokio::net::TcpListener::bind(addr)

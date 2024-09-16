@@ -27,4 +27,3 @@ tracing = "0.1.40"
 anyhow = "1.0.88"
 axum-macros = "0.4.1"
 dotenv = "0.15.0"
-aide = { version = "0.13.4", features = ["axum"] }

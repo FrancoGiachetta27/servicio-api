@@ -6,29 +6,14 @@ use crate::{
     services::georef::{self, GeoRefIn},
 };
 
-#[derive(Default, Serialize, Deserialize)]
-struct Direccion {
-    provincia: String,
-    calle: String,
-    altura: i16,
-    latitud: f32,
-    longitud: f32,
-}
+use super::{Direccion, ParamsRecomendacion};
 
 #[derive(Default, Serialize, Deserialize)]
-struct Recomendacion {
+struct RecomendacionPersonaVulnerable {
     nombre: String,
     apellido: String,
     direccion: Direccion,
     cantidad_recomendada: i16,
-}
-
-#[derive(Deserialize)]
-pub struct ParamsRecomendacion {
-    calle: String,
-    altura: i16,
-    provincia: Option<String>,
-    radio_max: Option<i32>,
 }
 
 pub async fn get_recomendacion(
