@@ -3,5 +3,7 @@
 pub mod prelude;
 
 pub mod direccion;
+pub mod heladera;
 pub mod persona_vulnerable;
 pub mod ubicacion;
+pub mod repositories;
