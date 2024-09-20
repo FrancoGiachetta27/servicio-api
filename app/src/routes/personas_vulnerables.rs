@@ -1,9 +1,15 @@
-use axum::{extract::Query, Json};
+use axum::{
+    extract::{Query, State},
+    Json,
+};
+use entity::repositories::Repository;
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 use crate::{
     errors::AppError,
     services::georef::{self, GeoRefIn},
+    AppState,
 };
 
 use super::{Direccion, ParamsRecomendacion};
@@ -17,6 +23,7 @@ struct RecomendacionPersonaVulnerable {
 }
 
 pub async fn get_recomendacion(
+    State(state): State<Arc<AppState>>,
     Query(params): Query<ParamsRecomendacion>,
 ) -> Result<Json<GeoRefIn>, AppError> {
     let ParamsRecomendacion {
@@ -24,11 +31,14 @@ pub async fn get_recomendacion(
         altura,
         provincia,
         radio_max,
+        stock_minimo: _,
     } = params;
 
     let georef_request = georef::request_georef(calle, altura, provincia)?;
 
     let ubicacion: GeoRefIn = georef_request.into_json()?;
+
+    let personas = state.personas_vulnerables_repo
 
     Ok(Json(ubicacion))
 }

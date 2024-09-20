@@ -6,19 +6,21 @@ edition = "2021"
 [workspace]
 members = [".", "entity", "migration"]
 
+[workspace.dependencies]
+sea-orm = { version = "1.0.1", features = [
+  "sqlx-mysql",
+  "runtime-tokio-rustls",
+  "macros",
+] }
+uuid = { version = "1.10.0", features = ["v4"] }
+
 [dependencies]
 migration = { path = "migration" }
 entity = { path = "entity" }
 axum = { version = "0.7.5" }
 chrono = "0.4.38"
 futures = "0.3.30"
-sea-orm = { version = "1.0.1", features = [
-  "sqlx-mysql",
-  "runtime-tokio-rustls",
-  "macros",
-] }
 tokio = { version = "1.40.0", features = ["full"] }
-uuid = { version = "1.10.0", features = ["v4"] }
 ureq = { version = "2.10.1", features = ["json"] }
 serde = "1.0.210"
 serde_json = "1.0.128"
