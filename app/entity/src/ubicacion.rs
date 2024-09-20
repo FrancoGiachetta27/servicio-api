@@ -26,6 +26,8 @@ pub enum Relation {
         on_delete = "NoAction"
     )]
     Direccion,
+    #[sea_orm(has_many = "super::heladera::Entity")]
+    Heladera,
     #[sea_orm(has_many = "super::persona_vulnerable::Entity")]
     PersonaVulnerable,
 }
@@ -33,6 +35,12 @@ pub enum Relation {
 impl Related<super::direccion::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Direccion.def()
+    }
+}
+
+impl Related<super::heladera::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Heladera.def()
     }
 }
 

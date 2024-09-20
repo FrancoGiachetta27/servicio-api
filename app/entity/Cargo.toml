@@ -9,4 +9,5 @@ name = "entity"
 path = "src/mod.rs"
 
 [dependencies]
-sea-orm = { version = "1.0.1", features = ["macros"] }
+sea-orm = { workspace = true }
+uuid = { workspace = true }
