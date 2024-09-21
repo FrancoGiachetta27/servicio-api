@@ -1,10 +1,17 @@
-use axum::{extract::rejection::JsonRejection, http::{StatusCode, Uri}, response::IntoResponse, Json};
+use axum::{
+    extract::rejection::JsonRejection,
+    http::{StatusCode, Uri},
+    response::IntoResponse,
+    Json,
+};
+use sea_orm::DbErr;
 use serde::Serialize;
 
 pub enum AppError {
     IoError(std::io::Error),
     JsonRejection(JsonRejection),
     ServiceError(ureq::Error),
+    DdError(DbErr),
 }
 
 impl IntoResponse for AppError {
@@ -39,6 +46,7 @@ impl IntoResponse for AppError {
                     },
                 ),
             },
+            AppError::DdError(e) => (StatusCode::FAILED_DEPENDENCY, e.to_string()),
         };
 
         (status, Json(ErrorMessage { message })).into_response()
@@ -60,6 +68,12 @@ impl From<JsonRejection> for AppError {
 impl From<std::io::Error> for AppError {
     fn from(value: std::io::Error) -> Self {
         Self::IoError(value)
+    }
+}
+
+impl From<DbErr> for AppError {
+    fn from(value: DbErr) -> Self {
+        Self::DdError(value)
     }
 }
 

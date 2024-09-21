@@ -1,6 +1,7 @@
 use axum::Router;
 use entity::repositories::personas_vulnerables_repository::PersonaVulnerableRepository;
 use errors::handle_404;
+use migration::sea_orm::DatabaseConnection;
 use std::env;
 use std::{
     net::{IpAddr, Ipv4Addr, SocketAddr},
@@ -10,13 +11,13 @@ use std::{
 mod errors;
 mod routes;
 mod services;
-
-use entity::repositories::heladeras_repository::HeladeraRepository;
+ use entity::repositories::heladeras_repository::HeladeraRepository;
 
 #[derive(Clone)]
 struct AppState {
     personas_vulnerables_repo: PersonaVulnerableRepository,
     heladeras_repo: HeladeraRepository,
+    db: DatabaseConnection,
 }
 
 #[tokio::main]
@@ -50,11 +51,17 @@ async fn main() {
 }
 
 async fn init_state() -> AppState {
-    let personas_vulnerables_repo = PersonaVulnerableRepository::new().await.unwrap();
-    let heladeras_repo = HeladeraRepository::new().await.unwrap();
+    let db = Database::connect(
+        env::var("DATABASE_URL").expect("No se pudo conectarse a la base de datos"),
+    )
+    .await?;
+
+    let personas_vulnerables_repo = PersonaVulnerableRepository::new(db).await.unwrap();
+    let heladeras_repo = HeladeraRepository::new(db).await.unwrap();
 
     AppState {
         personas_vulnerables_repo,
         heladeras_repo,
+        db,
     }
 }

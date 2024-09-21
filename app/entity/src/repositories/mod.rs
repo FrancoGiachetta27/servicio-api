@@ -1,10 +1,18 @@
 pub mod heladeras_repository;
 pub mod personas_vulnerables_repository;
 
-use sea_orm::{
-    sea_query::IntoCondition, ActiveModelTrait, DeleteResult, EntityTrait, InsertResult, ModelTrait,
-};
+use sea_orm::{ActiveModelTrait, Condition, DeleteResult, InsertResult, ModelTrait, Statement};
 use uuid::Uuid;
+
+#[macro_export]
+macro_rules! find_join {
+    ($db : expr, $model : ty, $($join : expr), *) => {
+        <$model>::find() $(
+            .inner_join($join)
+        )*
+        .all($db).await
+    }
+}
 
 pub trait Repository<M, A>
 where
@@ -15,6 +23,6 @@ where
     async fn save(&self, insertable: A) -> Result<InsertResult<A>, sea_orm::DbErr>;
     async fn update(&self, insertable: A) -> Result<M, sea_orm::DbErr>;
     async fn delete(&self, id: Uuid) -> Result<DeleteResult, sea_orm::DbErr>;
-    async fn filter<C: IntoCondition>(&self, filter: C) -> Result<Vec<M>, sea_orm::DbErr>;
-    async fn raw(&self, query: String) -> Result<Vec<M>, sea_orm::DbErr>;
+    async fn filter(&self, filter: Condition) -> Result<Vec<M>, sea_orm::DbErr>;
+    async fn raw(&self, query: Statement) -> Result<Vec<M>, sea_orm::DbErr>;
 }

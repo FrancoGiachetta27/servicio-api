@@ -42,4 +42,16 @@ impl Related<super::ubicacion::Entity> for Entity {
     }
 }
 
+pub struct SelfReferencingLink;
+
+impl Linked for SelfReferencingLink {
+    type FromEntity = Entity;
+
+    type ToEntity = Entity;
+
+    fn link(&self) -> Vec<RelationDef> {
+        vec![Relation::SelfRef.def()]
+    }
+}
+
 impl ActiveModelBehavior for ActiveModel {}
