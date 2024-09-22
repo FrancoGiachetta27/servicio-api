@@ -1,33 +1,31 @@
-use sea_orm::sea_query::SimpleExpr;
-use sea_orm::Condition;
+use sea_orm::sea_query::{IntoCondition, SimpleExpr};
+use sea_orm::{Condition, Statement};
 use sea_orm::{
-    sea_query::IntoCondition, DatabaseConnection, DeleteResult, EntityOrSelect, EntityTrait,
-    InsertResult, QueryFilter, Statement,
+    DatabaseConnection, DeleteResult, EntityOrSelect, EntityTrait, InsertResult, QueryFilter,
 };
 use uuid::Uuid;
 
 use super::Repository;
-use crate::heladera::{ActiveModel, Entity as Heladera, Model};
-use crate::ubicacion;
+use crate::direccion;
+use crate::ubicacion::{ActiveModel, Entity as Ubicacion, Model};
 
 #[derive(Clone)]
-pub struct HeladeraRepository {
+pub struct UbicacionRepository {
     db: DatabaseConnection,
 }
 
-impl HeladeraRepository {
+impl UbicacionRepository {
     pub async fn new(db: &DatabaseConnection) -> Result<Self, sea_orm::DbErr> {
         let db = db.clone();
-
         Ok(Self { db })
     }
 
     pub async fn find_related(
         &self,
         filter: Option<SimpleExpr>,
-        entity: ubicacion::Entity,
-    ) -> Result<Vec<(Model, Option<ubicacion::Model>)>, sea_orm::DbErr> {
-        let query = Heladera::find().find_also_related(entity);
+        entity: direccion::Entity,
+    ) -> Result<Vec<(Model, Option<direccion::Model>)>, sea_orm::DbErr> {
+        let query = Ubicacion::find().find_also_related(entity);
 
         match filter {
             Some(f) => query.filter(f).all(&self.db).await,
@@ -36,31 +34,35 @@ impl HeladeraRepository {
     }
 }
 
-impl Repository<Model, ActiveModel> for HeladeraRepository {
+impl Repository<Model, ActiveModel> for UbicacionRepository {
     async fn all(&self) -> Result<Vec<Model>, sea_orm::DbErr> {
-        Heladera::find().all(&self.db).await
+        Ubicacion::find().all(&self.db).await
     }
 
     async fn filter(&self, filter: Condition) -> Result<Vec<Model>, sea_orm::DbErr> {
-        Heladera::find().select().filter(filter).all(&self.db).await
+        Ubicacion::find()
+            .select()
+            .filter(filter)
+            .all(&self.db)
+            .await
     }
 
     async fn save(
         &self,
         insertable: ActiveModel,
     ) -> Result<InsertResult<ActiveModel>, sea_orm::DbErr> {
-        Heladera::insert(insertable).exec(&self.db).await
+        Ubicacion::insert(insertable).exec(&self.db).await
     }
 
     async fn update(&self, insertable: ActiveModel) -> Result<Model, sea_orm::DbErr> {
-        Heladera::update(insertable).exec(&self.db).await
+        Ubicacion::update(insertable).exec(&self.db).await
     }
 
     async fn delete(&self, id: Uuid) -> Result<DeleteResult, sea_orm::DbErr> {
-        Heladera::delete_by_id(id).exec(&self.db).await
+        Ubicacion::delete_by_id(id).exec(&self.db).await
     }
 
     async fn raw(&self, query: Statement) -> Result<Vec<Model>, sea_orm::DbErr> {
-        Heladera::find().from_raw_sql(query).all(&self.db).await
+        Ubicacion::find().from_raw_sql(query).all(&self.db).await
     }
 }

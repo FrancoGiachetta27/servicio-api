@@ -2,26 +2,25 @@ use axum::{
     extract::{Query, State},
     Json,
 };
-use entity::{direccion, persona_vulnerable, prelude::Ubicacion, ubicacion};
-use migration::sea_orm::{EntityTrait, QueryFilter};
+use entity::{direccion, persona_vulnerable, prelude::UbicacionEntity, ubicacion};
 use sea_orm::ColumnTrait;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use uuid::Uuid;
 
 use crate::{
     errors::AppError,
     services::georef::{self, GeoRefIn},
-    AppState,
 };
+use super::AppState;
 
 use super::{utils::distancia_haversine, Direccion, ParamsRecomendacion};
 
 #[derive(Default, Serialize, Deserialize)]
-struct RecomendacionPersonaVulnerable {
+pub struct RecomendacionPersonaVulnerable {
     nombre: String,
     apellido: String,
     direccion: Direccion,
-    cantidad_recomendada: i16,
+    cantidad_recomendada: u16,
 }
 
 impl RecomendacionPersonaVulnerable {
@@ -29,7 +28,7 @@ impl RecomendacionPersonaVulnerable {
         persona: persona_vulnerable::Model,
         ubicacion: ubicacion::Model,
         direccion: direccion::Model,
-        cantidad_recomendada: i16,
+        cantidad_recomendada: u16,
     ) -> Self {
         let direccion = Direccion {
             provincia: direccion.provincia,
@@ -49,9 +48,9 @@ impl RecomendacionPersonaVulnerable {
 }
 
 pub async fn get_recomendacion(
-    State(state): State<Arc<AppState>>,
+    State(state): State<AppState>,
     Query(params): Query<ParamsRecomendacion>,
-) -> Result<Json<RecomendacionPersonaVulnerable>, AppError> {
+) -> Result<Json<Vec<RecomendacionPersonaVulnerable>>, AppError> {
     let ParamsRecomendacion {
         calle,
         altura,
@@ -64,38 +63,46 @@ pub async fn get_recomendacion(
 
     let ubicacion: GeoRefIn = georef_request.into_json()?;
 
+    let direccion_georef = ubicacion.direcciones;
+
     let persona_ubicacion = state
         .personas_vulnerables_repo
-        .find_related(None, Ubicacion)
+        .find_related(None, UbicacionEntity)
         .await?;
 
-    let recomendaciones: Vec<RecomendacionPersonaVulnerable> = vec![];
+    let mut recomendaciones: Vec<RecomendacionPersonaVulnerable> = vec![];
 
-    for (p, u) in persona_ubicacion.iter() {
-        let u = u.first().unwrap();
+    for (p, u) in persona_ubicacion.into_iter() {
+        let u = u.unwrap();
 
-        if distancia_haversine(u.latitud, u.longitud, u.latitud, u.longitud) <= radio_max {
-            let (_, hijos) = state
+        if distancia_haversine(
+            direccion_georef.ubicacion.lat,
+            direccion_georef.ubicacion.lon,
+            u.latitud,
+            u.longitud,
+        ) <= radio_max
+        {
+            let persona_hijos = state
                 .personas_vulnerables_repo
-                .find_self_related(Some(persona_vulnerable::Column::Uuid.eq(p.uuid)))
-                .await?
-                .first()
-                .unwrap();
+                .find_self_related(Some(persona_vulnerable::Column::Uuid.eq(Uuid::from_slice(&p.uuid).unwrap())))
+                .await?;
+        
+            let ubicacion_direccion = state
+                .ubicaciones_repo
+                .find_related(
+                    Some(ubicacion::Column::Uuid.eq(u.uuid.clone())),
+                    direccion::Entity,
+                )
+                .await?;
 
-            let (ubicacion, direccion_opt) = Ubicacion::find()
-                .filter(ubicacion::Column::Uuid.eq(u.uuid))
-                .find_also_related(direccion::Entity)
-                .one(&state.db)
-                .await?
-                .unwrap();
-
-            let direccion = direccion_opt.unwrap();
-
+            let (_, hijos) = persona_hijos.first().unwrap();
+            let (_, direccion_opt) = ubicacion_direccion.first().unwrap();
+            
             recomendaciones.push(RecomendacionPersonaVulnerable::new(
-                *p,
-                *u,
-                direccion,
-                hijos.len() as i16,
+                p,
+                u,
+                direccion_opt.clone().unwrap(),
+                hijos.len() as u16,
             ));
         }
     }

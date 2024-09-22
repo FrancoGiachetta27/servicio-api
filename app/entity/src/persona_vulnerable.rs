@@ -13,7 +13,7 @@ pub struct Model {
     #[sea_orm(column_type = "Binary(16)")]
     pub direccion_id: Vec<u8>,
     #[sea_orm(column_type = "Binary(16)")]
-    pub pariente_a_cargo: Vec<u8>,
+    pub pariente_a_cargo: Option<Vec<u8>>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

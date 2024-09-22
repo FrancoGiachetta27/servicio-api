@@ -1,14 +1,13 @@
-use crate::AppState;
+use servicio_apiV2::state::AppState;
 use axum::{routing::get, Router};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 
 pub mod heladeras;
 pub mod personas_vulnerables;
 pub mod utils;
 
 #[derive(Default, Serialize, Deserialize)]
-struct Direccion {
+pub struct Direccion {
     provincia: String,
     calle: String,
     altura: i32,
@@ -25,7 +24,7 @@ pub struct ParamsRecomendacion {
     stock_minimo: Option<i16>,
 }
 
-pub fn api_routes() -> Router<Arc<AppState>> {
+pub fn api_routes() -> Router<AppState> {
     Router::new()
         .route(
             "/personas_vulnerables",

@@ -1,5 +1,6 @@
 pub mod heladeras_repository;
 pub mod personas_vulnerables_repository;
+pub mod ubicaciones_repository;
 
 use sea_orm::{ActiveModelTrait, Condition, DeleteResult, InsertResult, ModelTrait, Statement};
 use uuid::Uuid;

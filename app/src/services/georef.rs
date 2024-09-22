@@ -18,7 +18,7 @@ struct Calle {
 #[derive(Deserialize, Serialize)]
 struct Departamento {
     id: String,
-    nombre: String
+    nombre: String,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -34,13 +34,13 @@ struct Provincia {
 }
 
 #[derive(Deserialize, Serialize)]
-struct Coordenadas {
-    lat: f32,
-    lon: f32,
+pub struct Coordenadas {
+    pub lat: f64,
+    pub lon: f64,
 }
 
 #[derive(Deserialize, Serialize)]
-struct Direccion {
+pub struct Direccion {
     altura: Altura,
     departamento: Option<Departamento>,
     calle: Calle,
@@ -48,13 +48,13 @@ struct Direccion {
     nomenclatura: String,
     piso: Option<String>,
     provincia: Provincia,
-    ubicacion: Coordenadas,
+    pub ubicacion: Coordenadas,
 }
 
 #[derive(Deserialize, Serialize)]
 pub struct GeoRefIn {
-    cantidad: i16,
-    direcciones: Vec<Direccion>,
+    pub cantidad: i16,
+    pub direcciones: Direccion,
 }
 
 pub fn request_georef(

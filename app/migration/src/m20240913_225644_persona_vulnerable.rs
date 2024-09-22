@@ -18,7 +18,7 @@ impl MigrationTrait for Migration {
                     .col(string(PersonaVulnerable::Apellido).not_null())
                     .col(date(PersonaVulnerable::FechaNacimiento).not_null())
                     .col(uuid(PersonaVulnerable::DireccionId).not_null())
-                    .col(uuid(PersonaVulnerable::ParienteACargo))
+                    .col(uuid(PersonaVulnerable::ParienteACargo).null())
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk-pers-direccion_id")

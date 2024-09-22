@@ -15,7 +15,7 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(uuid(Heladera::Uuid).primary_key().not_null())
                     .col(uuid(Heladera::DireccionId).not_null())
-                    .col(string(Heladera::CantidadViandas))
+                    .col(integer(Heladera::CantidadViandas))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk-hela-direccion_id")

@@ -1,8 +1,9 @@
-use sea_orm::{Condition, Statement};
+use sea_orm::sea_query::SimpleExpr;
 use sea_orm::{
     sea_query::IntoCondition, DatabaseConnection, DeleteResult, EntityOrSelect, EntityTrait,
     InsertResult, QueryFilter,
 };
+use sea_orm::{Condition, Statement};
 use uuid::Uuid;
 
 use super::Repository;
@@ -17,8 +18,34 @@ pub struct PersonaVulnerableRepository {
 }
 
 impl PersonaVulnerableRepository {
-    pub async fn new(db: DatabaseConnection) -> Result<Self, sea_orm::DbErr> {
+    pub async fn new(db: &DatabaseConnection) -> Result<Self, sea_orm::DbErr> {
+        let db = db.clone();
         Ok(Self { db })
+    }
+
+    pub async fn find_related(
+        &self,
+        filter: Option<SimpleExpr>,
+        entity: ubicacion::Entity,
+    ) -> Result<Vec<(Model, Option<ubicacion::Model>)>, sea_orm::DbErr> {
+        let query = PersonaVulnerable::find().find_also_related(entity);
+
+        match filter {
+            Some(f) => query.filter(f).all(&self.db).await,
+            None => query.all(&self.db).await,
+        }
+    }
+
+    pub async fn find_self_related<C: IntoCondition>(
+        &self,
+        filter: Option<C>,
+    ) -> Result<Vec<(Model, Vec<Model>)>, sea_orm::DbErr> {
+        let query = PersonaVulnerable::find().find_with_linked(SelfReferencingLink);
+
+        match filter {
+            Some(f) => query.filter(f).all(&self.db).await,
+            None => query.all(&self.db).await,
+        }
     }
 }
 
@@ -55,32 +82,5 @@ impl Repository<Model, ActiveModel> for PersonaVulnerableRepository {
             .from_raw_sql(query)
             .all(&self.db)
             .await
-    }
-}
-
-impl PersonaVulnerableRepository {
-    pub async fn find_related(
-        &self,
-        filter: Option<Condition>,
-        entity: ubicacion::Entity,
-    ) -> Result<Vec<(Model, Vec<ubicacion::Model>)>, sea_orm::DbErr> {
-        let query = PersonaVulnerable::find().find_with_related(entity);
-
-        match filter {
-            Some(f) => query.filter(f).all(&self.db).await,
-            None => query.all(&self.db).await,
-        }
-    }
-
-    pub async fn find_self_related<C: IntoCondition>(
-        &self,
-        filter: Option<C>,
-    ) -> Result<Vec<(Model, Vec<Model>)>, sea_orm::DbErr> {
-        let query = PersonaVulnerable::find().find_with_linked(SelfReferencingLink);
-
-        match filter {
-            Some(f) => query.filter(f).all(&self.db).await,
-            None => query.all(&self.db).await,
-        }
     }
 }

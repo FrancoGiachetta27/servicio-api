@@ -26,9 +26,9 @@ pub enum Relation {
         on_delete = "NoAction"
     )]
     Direccion,
-    #[sea_orm(has_many = "super::heladera::Entity")]
+    #[sea_orm(has_one = "super::heladera::Entity")]
     Heladera,
-    #[sea_orm(has_many = "super::persona_vulnerable::Entity")]
+    #[sea_orm(has_one = "super::persona_vulnerable::Entity")]
     PersonaVulnerable,
 }
 

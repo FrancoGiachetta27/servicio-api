@@ -1,17 +1,24 @@
-use rtest::*;
+use sea_orm::MockDatabase;
+use test_case::case;
 use tokio;
 
-fn setup() {}
+async fn setup() {
+    let db = MockDatabase::new(sea_orm::DatabaseBackend::MySql).append_query_results(
+        [
+            
+        ]
+    )
+}
 
 #[tokio::test]
-#[rtest]
-#[case("/personas_vulnerables", "Urquiza", 400, "Santa Fe", 20.0, None)]
+#[test_case("/personas_vulnerables", "Urquiza", 400, Some("Santa Fe"), 20.0, None)]
 async fn test_endpoints(
-    #[case] endpoint: &'static str,
-    #[case] calle: &'static str,
-    #[case] altura: i16,
-    #[case] provincia: Option<&'static str>,
-    #[case] radio_max: f64,
-    #[case] stock_minimo: Option<i16>,
+    endpoint: &str,
+    calle: &str,
+    altura: i16,
+    provincia: Option<&str>,
+    radio_max: f64,
+    stock_minimo: Option<i16>
 ) {
+    
 }
