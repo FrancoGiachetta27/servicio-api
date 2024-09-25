@@ -9,7 +9,7 @@ pub struct Model {
     pub uuid: Vec<u8>,
     #[sea_orm(column_type = "Binary(16)")]
     pub direccion_id: Vec<u8>,
-    pub cantidad_viandas: u16,
+    pub cantidad_viandas: i16,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

@@ -39,7 +39,7 @@ impl Repository<Model, ActiveModel> for UbicacionRepository {
         Ubicacion::find().all(&self.db).await
     }
 
-    async fn filter(&self, filter: Condition) -> Result<Vec<Model>, sea_orm::DbErr> {
+    async fn filter<C: IntoCondition>(&self, filter: C) -> Result<Vec<Model>, sea_orm::DbErr> {
         Ubicacion::find()
             .select()
             .filter(filter)

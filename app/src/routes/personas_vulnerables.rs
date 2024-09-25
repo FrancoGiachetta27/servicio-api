@@ -2,16 +2,21 @@ use axum::{
     extract::{Query, State},
     Json,
 };
-use entity::{direccion, persona_vulnerable, prelude::UbicacionEntity, ubicacion};
+use entity::{
+    direccion,
+    persona_vulnerable::{self, SelfLinkHijos},
+    prelude::UbicacionEntity,
+    ubicacion,
+};
 use sea_orm::ColumnTrait;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use super::AppState;
 use crate::{
     errors::AppError,
     services::georef::{self, GeoRefIn},
 };
-use super::AppState;
 
 use super::{utils::distancia_haversine, Direccion, ParamsRecomendacion};
 
@@ -84,9 +89,12 @@ pub async fn get_recomendacion(
         {
             let persona_hijos = state
                 .personas_vulnerables_repo
-                .find_self_related(Some(persona_vulnerable::Column::Uuid.eq(Uuid::from_slice(&p.uuid).unwrap())))
+                .find_self_related(
+                    Some(persona_vulnerable::Column::Uuid.eq(Uuid::from_slice(&p.uuid).unwrap())),
+                    SelfLinkHijos,
+                )
                 .await?;
-        
+
             let ubicacion_direccion = state
                 .ubicaciones_repo
                 .find_related(
@@ -97,7 +105,7 @@ pub async fn get_recomendacion(
 
             let (_, hijos) = persona_hijos.first().unwrap();
             let (_, direccion_opt) = ubicacion_direccion.first().unwrap();
-            
+
             recomendaciones.push(RecomendacionPersonaVulnerable::new(
                 p,
                 u,

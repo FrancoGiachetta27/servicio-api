@@ -3,13 +3,11 @@ use sea_orm::{
     sea_query::IntoCondition, DatabaseConnection, DeleteResult, EntityOrSelect, EntityTrait,
     InsertResult, QueryFilter,
 };
-use sea_orm::{Condition, Statement};
+use sea_orm::{Condition, Linked, Statement};
 use uuid::Uuid;
 
 use super::Repository;
-use crate::persona_vulnerable::{
-    ActiveModel, Entity as PersonaVulnerable, Model, SelfReferencingLink,
-};
+use crate::persona_vulnerable::{ActiveModel, Entity as PersonaVulnerable, Model};
 use crate::ubicacion;
 
 #[derive(Clone)]
@@ -36,11 +34,16 @@ impl PersonaVulnerableRepository {
         }
     }
 
-    pub async fn find_self_related<C: IntoCondition>(
+    pub async fn find_self_related<C, L>(
         &self,
         filter: Option<C>,
-    ) -> Result<Vec<(Model, Vec<Model>)>, sea_orm::DbErr> {
-        let query = PersonaVulnerable::find().find_with_linked(SelfReferencingLink);
+        link: L,
+    ) -> Result<Vec<(Model, Vec<Model>)>, sea_orm::DbErr>
+    where
+        C: IntoCondition,
+        L: Linked<FromEntity = PersonaVulnerable, ToEntity = PersonaVulnerable>,
+    {
+        let query = PersonaVulnerable::find().find_with_linked(link);
 
         match filter {
             Some(f) => query.filter(f).all(&self.db).await,
@@ -54,7 +57,7 @@ impl Repository<Model, ActiveModel> for PersonaVulnerableRepository {
         PersonaVulnerable::find().all(&self.db).await
     }
 
-    async fn filter(&self, filter: Condition) -> Result<Vec<Model>, sea_orm::DbErr> {
+    async fn filter<C: IntoCondition>(&self, filter: C) -> Result<Vec<Model>, sea_orm::DbErr> {
         PersonaVulnerable::find()
             .select()
             .filter(filter)

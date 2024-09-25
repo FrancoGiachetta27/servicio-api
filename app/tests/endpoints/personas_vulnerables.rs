@@ -1,24 +1,17 @@
-use sea_orm::MockDatabase;
-use test_case::case;
+use axum::Router;
+use rstest::rstest;
 use tokio;
 
-async fn setup() {
-    let db = MockDatabase::new(sea_orm::DatabaseBackend::MySql).append_query_results(
-        [
-            
-        ]
-    )
-}
-
+#[rstest]
+#[case("/personas_vulnerables", "Urquiza", 400, Some("Santa Fe"), 20.0, None)]
 #[tokio::test]
-#[test_case("/personas_vulnerables", "Urquiza", 400, Some("Santa Fe"), 20.0, None)]
 async fn test_endpoints(
-    endpoint: &str,
-    calle: &str,
-    altura: i16,
-    provincia: Option<&str>,
-    radio_max: f64,
-    stock_minimo: Option<i16>
+    #[case] endpoint: &str,
+    #[case] calle: &str,
+    #[case] altura: i16,
+    #[case] provincia: Option<&str>,
+    #[case] radio_max: f64,
+    #[case] stock_minimo: Option<i16>,
 ) {
-    
+    let app = Router::new();
 }

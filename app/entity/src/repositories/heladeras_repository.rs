@@ -1,5 +1,4 @@
 use sea_orm::sea_query::SimpleExpr;
-use sea_orm::Condition;
 use sea_orm::{
     sea_query::IntoCondition, DatabaseConnection, DeleteResult, EntityOrSelect, EntityTrait,
     InsertResult, QueryFilter, Statement,
@@ -41,7 +40,7 @@ impl Repository<Model, ActiveModel> for HeladeraRepository {
         Heladera::find().all(&self.db).await
     }
 
-    async fn filter(&self, filter: Condition) -> Result<Vec<Model>, sea_orm::DbErr> {
+    async fn filter<C: IntoCondition>(&self, filter: C) -> Result<Vec<Model>, sea_orm::DbErr> {
         Heladera::find().select().filter(filter).all(&self.db).await
     }
 

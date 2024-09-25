@@ -3,6 +3,10 @@ use entity::{
     direccion::{ActiveModel as DireccionModel, Entity as DireccionEntity},
     heladera::{ActiveModel as HeladeraModel, Entity as HeladeraEntity},
     persona_vulnerable::{ActiveModel as PersonaModel, Entity as PersonaEntity},
+    repositories::{
+        heladeras_repository::HeladeraRepository,
+        personas_vulnerables_repository::PersonaVulnerableRepository,
+    },
     ubicacion::{ActiveModel as UbicacionModel, Entity as UbicacionEntity},
 };
 use migration::{Migrator, MigratorTrait};
@@ -11,6 +15,8 @@ use test_context::AsyncTestContext;
 use uuid::Uuid;
 
 pub struct TestContext {
+    pub personas_repo: PersonaVulnerableRepository,
+    pub heladeras_repo: HeladeraRepository,
     pub db: DatabaseConnection,
 }
 
@@ -22,8 +28,11 @@ impl AsyncTestContext for TestContext {
             .await
             .unwrap();
 
-        // setear schemas
-        Migrator::fresh(&db).await.unwrap();
+        let personas_repo = PersonaVulnerableRepository::new(&db).await.unwrap();
+        let heladeras_repo = HeladeraRepository::new(&db).await.unwrap();
+
+        // migrar esquemas
+        Migrator::up(&db, None).await.ok();
 
         // Direcciones
 
@@ -178,6 +187,66 @@ impl AsyncTestContext for TestContext {
             },
         ];
 
+        // Heladera
+
+        let heladeras = vec![
+            HeladeraModel {
+                uuid: Set(Uuid::from_u128(1).into()),
+                direccion_id: Set(Uuid::from_u128(1).into()),
+                cantidad_viandas: Set(2),
+            },
+            HeladeraModel {
+                uuid: Set(Uuid::from_u128(2).into()),
+                direccion_id: Set(Uuid::from_u128(2).into()),
+                cantidad_viandas: Set(10),
+            },
+            HeladeraModel {
+                uuid: Set(Uuid::from_u128(3).into()),
+                direccion_id: Set(Uuid::from_u128(3).into()),
+                cantidad_viandas: Set(23),
+            },
+            HeladeraModel {
+                uuid: Set(Uuid::from_u128(4).into()),
+                direccion_id: Set(Uuid::from_u128(4).into()),
+                cantidad_viandas: Set(2),
+            },
+            HeladeraModel {
+                uuid: Set(Uuid::from_u128(5).into()),
+                direccion_id: Set(Uuid::from_u128(5).into()),
+                cantidad_viandas: Set(14),
+            },
+            HeladeraModel {
+                uuid: Set(Uuid::from_u128(6).into()),
+                direccion_id: Set(Uuid::from_u128(6).into()),
+                cantidad_viandas: Set(43),
+            },
+            HeladeraModel {
+                uuid: Set(Uuid::from_u128(7).into()),
+                direccion_id: Set(Uuid::from_u128(7).into()),
+                cantidad_viandas: Set(10),
+            },
+            HeladeraModel {
+                uuid: Set(Uuid::from_u128(8).into()),
+                direccion_id: Set(Uuid::from_u128(8).into()),
+                cantidad_viandas: Set(28),
+            },
+            HeladeraModel {
+                uuid: Set(Uuid::from_u128(9).into()),
+                direccion_id: Set(Uuid::from_u128(9).into()),
+                cantidad_viandas: Set(30),
+            },
+            HeladeraModel {
+                uuid: Set(Uuid::from_u128(10).into()),
+                direccion_id: Set(Uuid::from_u128(10).into()),
+                cantidad_viandas: Set(34),
+            },
+            HeladeraModel {
+                uuid: Set(Uuid::from_u128(11).into()),
+                direccion_id: Set(Uuid::from_u128(11).into()),
+                cantidad_viandas: Set(25),
+            },
+        ];
+
         // Personas
 
         let personas = vec![
@@ -195,7 +264,7 @@ impl AsyncTestContext for TestContext {
                 apellido: Set("Perez".into()),
                 fecha_nacimiento: Set(NaiveDate::from_ymd_opt(2002, 11, 8).unwrap()),
                 direccion_id: Set(Uuid::from_u128(2).into()),
-                pariente_a_cargo: Set(None),
+                pariente_a_cargo: Set(Some(Uuid::from_u128(1).into())),
             },
             PersonaModel {
                 uuid: Set(Uuid::from_u128(3).into()),
@@ -203,7 +272,7 @@ impl AsyncTestContext for TestContext {
                 apellido: Set("Perez".into()),
                 fecha_nacimiento: Set(NaiveDate::from_ymd_opt(2003, 4, 4).unwrap()),
                 direccion_id: Set(Uuid::from_u128(3).into()),
-                pariente_a_cargo: Set(None),
+                pariente_a_cargo: Set(Some(Uuid::from_u128(1).into())),
             },
             PersonaModel {
                 uuid: Set(Uuid::from_u128(4).into()),
@@ -211,7 +280,7 @@ impl AsyncTestContext for TestContext {
                 apellido: Set("Perez".into()),
                 fecha_nacimiento: Set(NaiveDate::from_ymd_opt(2003, 6, 26).unwrap()),
                 direccion_id: Set(Uuid::from_u128(4).into()),
-                pariente_a_cargo: Set(None),
+                pariente_a_cargo: Set(Some(Uuid::from_u128(1).into())),
             },
             PersonaModel {
                 uuid: Set(Uuid::from_u128(5).into()),
@@ -219,7 +288,7 @@ impl AsyncTestContext for TestContext {
                 apellido: Set("Perez".into()),
                 fecha_nacimiento: Set(NaiveDate::from_ymd_opt(1978, 11, 20).unwrap()),
                 direccion_id: Set(Uuid::from_u128(5).into()),
-                pariente_a_cargo: Set(None),
+                pariente_a_cargo: Set(Some(Uuid::from_u128(3).into())),
             },
             PersonaModel {
                 uuid: Set(Uuid::from_u128(6).into()),
@@ -243,7 +312,7 @@ impl AsyncTestContext for TestContext {
                 apellido: Set("Perez".into()),
                 fecha_nacimiento: Set(NaiveDate::from_ymd_opt(2003, 5, 7).unwrap()),
                 direccion_id: Set(Uuid::from_u128(8).into()),
-                pariente_a_cargo: Set(None),
+                pariente_a_cargo: Set(Some(Uuid::from_u128(7).into())),
             },
             PersonaModel {
                 uuid: Set(Uuid::from_u128(9).into()),
@@ -274,20 +343,23 @@ impl AsyncTestContext for TestContext {
         DireccionEntity::insert_many(direcciones)
             .exec(&db)
             .await
-            .unwrap();
+            .ok();
         UbicacionEntity::insert_many(ubicaciones)
             .exec(&db)
             .await
-            .unwrap();
-        PersonaEntity::insert_many(personas)
-            .exec(&db)
-            .await
-            .unwrap();
+            .ok();
+        PersonaEntity::insert_many(personas).exec(&db).await.ok();
+        HeladeraEntity::insert_many(heladeras).exec(&db).await.ok();
 
-        TestContext { db }
+        TestContext {
+            personas_repo,
+            heladeras_repo,
+            db,
+        }
     }
 
     async fn teardown(self) {
-        Migrator::reset(&self.db).await.unwrap();
+        // dropea todas las tablas
+        Migrator::reset(&self.db).await.ok();
     }
 }
