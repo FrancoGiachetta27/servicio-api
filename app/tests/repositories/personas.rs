@@ -1,17 +1,14 @@
-use crate::common::TestContext;
 use chrono::NaiveDate;
 use entity::{
-    direccion::{Column as DireccionColumn, Entity as DireccionEntity},
-    heladera::{Column as HeladeraColumn, Entity as Heladera},
-    persona_vulnerable::{
-        Column as PersonaColumn, Entity as Persona, Model as PersonaModel, SelfLinkHijos,
-    },
+    persona_vulnerable::{Column as PersonaColumn, Model as PersonaModel, SelfLinkHijos},
     repositories::Repository,
-    ubicacion::{Column as UbicacionColumn, Entity as Ubicacion, Model as UbicacionModel},
+    ubicacion::{Entity as Ubicacion, Model as UbicacionModel},
 };
-use sea_orm::{ColumnTrait, EntityTrait};
+use sea_orm::ColumnTrait;
 use test_context::test_context;
 use uuid::Uuid;
+
+use crate::common::TestContext;
 
 #[test_context(TestContext)]
 #[tokio::test]

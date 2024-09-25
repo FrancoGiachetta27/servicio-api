@@ -31,8 +31,25 @@ impl AsyncTestContext for TestContext {
         let personas_repo = PersonaVulnerableRepository::new(&db).await.unwrap();
         let heladeras_repo = HeladeraRepository::new(&db).await.unwrap();
 
+        migrate(&db).await;
+        
+        TestContext {
+            personas_repo,
+            heladeras_repo,
+            db,
+        }
+    }
+
+    async fn teardown(self) {
+        // dropea todas las tablas
+        Migrator::reset(&self.db).await.ok();
+    }
+}
+
+pub async fn migrate(db: &DatabaseConnection) {
+    
         // migrar esquemas
-        Migrator::up(&db, None).await.ok();
+        Migrator::up(db, None).await.ok();
 
         // Direcciones
 
@@ -341,25 +358,13 @@ impl AsyncTestContext for TestContext {
         ];
 
         DireccionEntity::insert_many(direcciones)
-            .exec(&db)
+            .exec(db)
             .await
             .ok();
         UbicacionEntity::insert_many(ubicaciones)
-            .exec(&db)
+            .exec(db)
             .await
             .ok();
-        PersonaEntity::insert_many(personas).exec(&db).await.ok();
-        HeladeraEntity::insert_many(heladeras).exec(&db).await.ok();
-
-        TestContext {
-            personas_repo,
-            heladeras_repo,
-            db,
-        }
-    }
-
-    async fn teardown(self) {
-        // dropea todas las tablas
-        Migrator::reset(&self.db).await.ok();
-    }
+        PersonaEntity::insert_many(personas).exec(db).await.ok();
+        HeladeraEntity::insert_many(heladeras).exec(db).await.ok();
 }
