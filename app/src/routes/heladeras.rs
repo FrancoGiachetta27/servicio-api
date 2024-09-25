@@ -31,6 +31,8 @@ pub async fn get_recomendacion(
         stock_minimo,
     } = params;
 
+
+    
     let georef_request = georef::request_georef(calle, altura, provincia)?;
 
     let ubicacion: GeoRefIn = georef_request.into_json()?;
