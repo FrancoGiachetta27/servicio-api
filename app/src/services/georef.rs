@@ -1,67 +1,68 @@
 use serde::{Deserialize, Serialize};
 
-const GEOREF: &str = "https://apis.datos.gob.ar/georef/api/direcciones";
+const GEOREF: &str = "https://apis.datos.gob.ar/georef/api/";
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 struct Altura {
-    unidad: Option<String>,
-    valor: i16,
+    pub unidad: Option<String>,
+    pub valor: i16,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 struct Calle {
-    id: String,
-    categoria: String,
-    nombre: String,
+    pub id: String,
+    pub categoria: String,
+    pub nombre: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 struct Departamento {
-    id: String,
-    nombre: String,
+    pub id: String,
+    pub nombre: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 struct Localidad {
-    id: String,
-    nombre: String,
+    pub id: String,
+    pub nombre: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 struct Provincia {
-    id: String,
-    nombre: String,
+    pub id: String,
+    pub nombre: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Coordenadas {
     pub lat: f64,
     pub lon: f64,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Direccion {
-    altura: Altura,
+    pub altura: Altura,
     departamento: Option<Departamento>,
-    calle: Calle,
+    pub calle: Calle,
     localidad_censal: Localidad,
     nomenclatura: String,
     piso: Option<String>,
-    provincia: Provincia,
+    pub provincia: Provincia,
     pub ubicacion: Coordenadas,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct GeoRefIn {
     pub cantidad: i16,
-    pub direcciones: Direccion,
+    pub direcciones: Vec<Direccion>,
 }
 
-pub fn request_georef(
+pub fn request_georef_direccion(
     calle: String,
     altura: i16,
     provincia: Option<String>,
 ) -> Result<ureq::Response, ureq::Error> {
+    let endpoint = GEOREF.to_string() + "direcciones";
     let direccion = calle + &altura.to_string();
 
     let query_params: [(&str, &str); 3] = [
@@ -75,6 +76,17 @@ pub fn request_georef(
         ),
         ("max", "1"),
     ];
+
+    ureq::get(&endpoint).query_pairs(query_params).call()
+}
+
+pub fn request_georef_ubicacion(
+    latitud: f64,
+    longitud: f64,
+) -> Result<ureq::Response, ureq::Error> {
+    let latitud = latitud.to_string();
+    let longitud = longitud.to_string();
+    let query_params: [(&str, &str); 2] = [("lat", &latitud), ("lon", &longitud)];
 
     ureq::get(GEOREF).query_pairs(query_params).call()
 }

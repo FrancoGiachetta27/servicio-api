@@ -1,4 +1,4 @@
-use servicio_apiV2::state::AppState;
+use crate::state::AppState;
 use axum::{routing::get, Router};
 use serde::{Deserialize, Serialize};
 
@@ -6,13 +6,18 @@ pub mod heladeras;
 pub mod personas_vulnerables;
 pub mod utils;
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Coordenadas {
+    latitud: f64,
+    longitud: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Direccion {
     provincia: String,
     calle: String,
     altura: i32,
-    latitud: f64,
-    longitud: f64,
+    coordenadas: Coordenadas
 }
 
 #[derive(Deserialize)]

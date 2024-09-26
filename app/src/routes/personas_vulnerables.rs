@@ -12,7 +12,7 @@ use sea_orm::ColumnTrait;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::AppState;
+use super::{AppState, Coordenadas};
 use crate::{
     errors::AppError,
     services::georef::{self, GeoRefIn},
@@ -20,12 +20,12 @@ use crate::{
 
 use super::{utils::distancia_haversine, Direccion, ParamsRecomendacion};
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct RecomendacionPersonaVulnerable {
-    nombre: String,
-    apellido: String,
-    direccion: Direccion,
-    cantidad_recomendada: u16,
+    pub nombre: String,
+    pub apellido: String,
+    pub direccion: Direccion,
+    pub cantidad_recomendada: u16,
 }
 
 impl RecomendacionPersonaVulnerable {
@@ -35,12 +35,15 @@ impl RecomendacionPersonaVulnerable {
         direccion: direccion::Model,
         cantidad_recomendada: u16,
     ) -> Self {
+        let coordenadas = Coordenadas {
+            latitud: ubicacion.latitud,
+            longitud: ubicacion.longitud,
+        };
         let direccion = Direccion {
             provincia: direccion.provincia,
             calle: direccion.calle,
             altura: direccion.altura,
-            latitud: ubicacion.latitud,
-            longitud: ubicacion.longitud,
+            coordenadas,
         };
 
         Self {
@@ -68,7 +71,7 @@ pub async fn get_recomendacion(
 
     let ubicacion: GeoRefIn = georef_request.into_json()?;
 
-    let direccion_georef = ubicacion.direcciones;
+    let direccion_georef = ubicacion.direcciones.first().unwrap();
 
     let persona_ubicacion = state
         .personas_vulnerables_repo
@@ -76,15 +79,14 @@ pub async fn get_recomendacion(
         .await?;
 
     let mut recomendaciones: Vec<RecomendacionPersonaVulnerable> = vec![];
-
     for (p, u) in persona_ubicacion.into_iter() {
         let u = u.unwrap();
 
         if distancia_haversine(
-            direccion_georef.ubicacion.lat,
-            direccion_georef.ubicacion.lon,
             u.latitud,
             u.longitud,
+            direccion_georef.ubicacion.lat,
+            direccion_georef.ubicacion.lon,
         ) <= radio_max
         {
             let persona_hijos = state
@@ -106,11 +108,13 @@ pub async fn get_recomendacion(
             let (_, hijos) = persona_hijos.first().unwrap();
             let (_, direccion_opt) = ubicacion_direccion.first().unwrap();
 
+            let cantidad_viandas = hijos.len() + 1;
+
             recomendaciones.push(RecomendacionPersonaVulnerable::new(
                 p,
                 u,
                 direccion_opt.clone().unwrap(),
-                hijos.len() as u16,
+                cantidad_viandas as u16,
             ));
         }
     }

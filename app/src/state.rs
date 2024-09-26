@@ -17,7 +17,8 @@ impl AppState {
         let personas_vulnerables_repo = PersonaVulnerableRepository::new(&db).await.unwrap();
         let heladeras_repo = HeladeraRepository::new(&db).await.unwrap();
         let ubicaciones_repo = UbicacionRepository::new(&db).await.unwrap();
-
+        let direccion_repo = DireccionRepository::new(&db).await.unwrap();
+        
         Ok(AppState {
             personas_vulnerables_repo,
             heladeras_repo,

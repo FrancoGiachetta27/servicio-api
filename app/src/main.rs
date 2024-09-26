@@ -4,11 +4,12 @@ use sea_orm::Database;
 use std::env;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use servicio_apiV2::state::AppState;
-
 mod errors;
 mod routes;
 mod services;
+mod state;
+
+use state::AppState;
 
 #[tokio::main]
 async fn main() {
@@ -23,7 +24,7 @@ async fn main() {
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), port);
 
     let db = {
-        let db_url = env::var("DATABASE_URL").unwrap();
+        let db_url = env::var("DATABASE_LOCAL").unwrap();
         match Database::connect(db_url).await {
             Ok(db) => db,
             Err(e) => panic!("No se pudo conectar a la base de datos con url: {}", e),

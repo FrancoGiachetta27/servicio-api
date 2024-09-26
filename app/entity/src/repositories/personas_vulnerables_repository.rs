@@ -3,7 +3,7 @@ use sea_orm::{
     sea_query::IntoCondition, DatabaseConnection, DeleteResult, EntityOrSelect, EntityTrait,
     InsertResult, QueryFilter,
 };
-use sea_orm::{Condition, Linked, Statement};
+use sea_orm::{Linked, Statement};
 use uuid::Uuid;
 
 use super::Repository;
@@ -58,11 +58,7 @@ impl Repository<Model, ActiveModel> for PersonaVulnerableRepository {
     }
 
     async fn filter<C: IntoCondition>(&self, filter: C) -> Result<Vec<Model>, sea_orm::DbErr> {
-        PersonaVulnerable::find()
-            .select()
-            .filter(filter)
-            .all(&self.db)
-            .await
+        PersonaVulnerable::find().filter(filter).all(&self.db).await
     }
 
     async fn save(

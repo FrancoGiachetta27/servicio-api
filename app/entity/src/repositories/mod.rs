@@ -1,8 +1,11 @@
+pub mod direcciones_repository;
 pub mod heladeras_repository;
 pub mod personas_vulnerables_repository;
 pub mod ubicaciones_repository;
 
-use sea_orm::{sea_query::IntoCondition, ActiveModelTrait, DeleteResult, InsertResult, ModelTrait, Statement};
+use sea_orm::{
+    sea_query::IntoCondition, ActiveModelTrait, DeleteResult, InsertResult, ModelTrait, Statement,
+};
 use uuid::Uuid;
 
 #[macro_export]

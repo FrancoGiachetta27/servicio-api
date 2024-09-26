@@ -41,7 +41,7 @@ impl Repository<Model, ActiveModel> for HeladeraRepository {
     }
 
     async fn filter<C: IntoCondition>(&self, filter: C) -> Result<Vec<Model>, sea_orm::DbErr> {
-        Heladera::find().select().filter(filter).all(&self.db).await
+        Heladera::find().filter(filter).all(&self.db).await
     }
 
     async fn save(
