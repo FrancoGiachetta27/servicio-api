@@ -1,3 +1,35 @@
+use entity::{
+    direccion::ActiveModel as ActiveDireccion,
+    repositories::Repository,
+    ubicacion::{ActiveModel as ActiveUbicacion, Model as UbicacionModel},
+};
+use sea_orm::{DbErr, Set};
+use uuid::Uuid;
+
+use crate::{services::georef::Direccion, state::AppState};
+
+pub async fn guardar_ubicacion(
+    state: &AppState,
+    ubicacion: &Direccion,
+) -> Result<UbicacionModel, DbErr> {
+    let direccion_model = ActiveDireccion {
+        uuid: Set(Uuid::new_v4().into()),
+        provincia: Set(ubicacion.provincia.nombre.clone()),
+        calle: Set(ubicacion.calle.nombre.clone()),
+        altura: Set(ubicacion.altura.valor as i32),
+    };
+    let uuid_direccion = state.direccion_repo.save(direccion_model).await?;
+
+    let ubicacion_model = ActiveUbicacion {
+        uuid: Set(Uuid::new_v4().into()),
+        latitud: Set(ubicacion.ubicacion.lat),
+        longitud: Set(ubicacion.ubicacion.lon),
+        direccion_id: Set(uuid_direccion.uuid),
+    };
+
+    state.ubicaciones_repo.save(ubicacion_model).await
+}
+
 pub fn distancia_haversine(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> f64 {
     let radio = 6372.8; // km
 

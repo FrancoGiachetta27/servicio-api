@@ -6,32 +6,48 @@ use sea_orm::{ColumnTrait, Set};
 use serde::{Deserialize, Serialize};
 
 use entity::{
-    direccion::{self, ActiveModel as ActiveDireccion},
+    direccion,
     heladera::{ActiveModel as ActiveHeladera, Column},
-    prelude::UbicacionEntity,
     repositories::Repository,
-    ubicacion::{self, ActiveModel as ActiveUbicacion},
+    ubicacion,
 };
 use uuid::Uuid;
 
-use super::{utils::distancia_haversine, AppState, Coordenadas};
+use super::{
+    utils::{distancia_haversine, guardar_ubicacion},
+    AppState, Coordenadas, Ubicacion,
+};
 use crate::{
     errors::AppError,
-    services::georef::{self, GeoRefIn},
+    services::georef::{self, DireccionGeoRef},
 };
 
 use super::{Direccion, ParamsRecomendacion};
 
 #[derive(Serialize, Deserialize)]
-struct HeladeraIn {
-    nombre_ubicacion: String,
-    coordenadas: Coordenadas,
+pub struct HeladeraIn {
+    direccion: Direccion,
     cantidad_viandas: u16,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+pub struct HeladeraOut {
+    pub ubicacion: Ubicacion,
+    pub cantidad_viandas: i32,
+}
+
+impl HeladeraOut {
+    pub fn new(cantidad_viandas: i32, ubicacion: Ubicacion) -> Self {
+        Self {
+            cantidad_viandas,
+            ubicacion,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct RecomendacionHeladera {
-    pub direccion: Direccion,
+    pub ubicacion: Ubicacion,
     pub cantidad_recomendada: u16,
 }
 
@@ -45,16 +61,18 @@ impl RecomendacionHeladera {
             latitud: ubicacion.latitud,
             longitud: ubicacion.longitud,
         };
-
         let direccion = Direccion {
             provincia: direccion.provincia,
             calle: direccion.calle,
             altura: direccion.altura,
+        };
+        let ubicacion = Ubicacion {
+            direccion,
             coordenadas,
         };
 
         Self {
-            direccion,
+            ubicacion,
             cantidad_recomendada,
         }
     }
@@ -74,7 +92,7 @@ pub async fn get_recomendacion(
 
     let georef_request = georef::request_georef_direccion(calle, altura, provincia)?;
 
-    let ubicacion: GeoRefIn = georef_request.into_json()?;
+    let ubicacion: DireccionGeoRef = georef_request.into_json()?;
 
     let ubicacion = ubicacion.direcciones.first().unwrap();
 
@@ -82,7 +100,7 @@ pub async fn get_recomendacion(
         .heladeras_repo
         .find_related(
             Some(Column::CantidadViandas.gte(stock_minimo)),
-            UbicacionEntity,
+            ubicacion::Entity,
         )
         .await?;
 
@@ -122,16 +140,20 @@ pub async fn get_recomendacion(
 pub async fn post_heladeras(
     State(state): State<AppState>,
     Json(heladeras): Json<Vec<HeladeraIn>>,
-) -> Result<Json<u8>, AppError> {
-    let heladeras: Vec<HeladeraIn> = heladeras;
+) -> Result<Json<Vec<HeladeraOut>>, AppError> {
     let ubicaciones = state.ubicaciones_repo.all().await?;
 
-    for h in heladeras {
-        let coordenaras = h.coordenadas;
+    let mut insersiones = Vec::new();
 
-        let georef_response =
-            georef::request_georef_ubicacion(coordenaras.latitud, coordenaras.longitud)?;
-        let ubicacion_georef: GeoRefIn = georef_response.into_json()?;
+    for h in heladeras {
+        let direccion = h.direccion;
+
+        let georef_response = georef::request_georef_direccion(
+            direccion.calle,
+            direccion.altura,
+            Some(direccion.provincia),
+        )?;
+        let ubicacion_georef: DireccionGeoRef = georef_response.into_json()?;
         let ubicacion_georef = ubicacion_georef.direcciones.first().unwrap();
 
         let ubicacion_existente = ubicaciones
@@ -143,38 +165,22 @@ pub async fn post_heladeras(
             .last();
 
         let uuid_ubicacion = match ubicacion_existente {
-            Some(u) => u.uuid,
-            None => {
-                let direccion_model = ActiveDireccion {
-                    uuid: Set(Uuid::new_v4().into()),
-                    provincia: Set(ubicacion_georef.provincia.nombre),
-                    calle: Set(ubicacion_georef.calle.nombre),
-                    altura: Set(ubicacion_georef.altura.valor as i32),
-                };
-
-                let uuid_direccion = state.direccion_repo.save(direccion_model).await?.last_insert_id;
-                
-                let ubicacion_model = ActiveUbicacion {
-                    uuid: Set(Uuid::new_v4().into()),
-                    nombre: Set(h.nombre_ubicacion),
-                    latitud: Set(h.coordenadas.latitud),
-                    longitud: Set(h.coordenadas.longitud),
-                    direccion_id: Set(uuid_direccion),
-                };
-
-                state
-                    .ubicaciones_repo
-                    .save(ubicacion_model)
-                    .await?
-                    .last_insert_id
-            }
+            Some(u) => u,
+            None => &guardar_ubicacion(&state, ubicacion_georef).await?,
         };
         let heladera_model = ActiveHeladera {
             uuid: Set(Uuid::new_v4().into()),
-            direccion_id: Set(uuid_ubicacion.clone().into()),
-            cantidad_viandas: Set(h.cantidad_viandas as i16),
+            direccion_id: Set(uuid_ubicacion.uuid.to_owned()),
+            cantidad_viandas: Set(h.cantidad_viandas as i32),
         };
+
+        let heladera_saved = state.clone().heladeras_repo.save(heladera_model).await?;
+
+        insersiones.push(HeladeraOut::new(
+            heladera_saved.cantidad_viandas,
+            ubicacion_georef.into(),
+        ));
     }
 
-    Ok(Json(3u8))
+    Ok(Json(insersiones))
 }

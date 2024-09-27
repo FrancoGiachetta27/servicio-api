@@ -16,7 +16,6 @@ impl MigrationTrait for Migration {
                     .col(uuid(PersonaVulnerable::Uuid).primary_key().not_null())
                     .col(string(PersonaVulnerable::Nombre).not_null())
                     .col(string(PersonaVulnerable::Apellido).not_null())
-                    .col(date(PersonaVulnerable::FechaNacimiento).not_null())
                     .col(uuid(PersonaVulnerable::DireccionId).not_null())
                     .col(uuid(PersonaVulnerable::ParienteACargo).null())
                     .foreign_key(
@@ -49,7 +48,6 @@ enum PersonaVulnerable {
     Uuid,
     Nombre,
     Apellido,
-    FechaNacimiento,
     DireccionId,
     ParienteACargo,
 }

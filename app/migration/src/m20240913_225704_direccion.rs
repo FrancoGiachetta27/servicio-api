@@ -33,5 +33,5 @@ pub enum Direccion {
     Uuid,
     Provincia,
     Calle,
-    Altura
+    Altura,
 }

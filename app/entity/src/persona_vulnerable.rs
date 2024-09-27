@@ -9,10 +9,9 @@ pub struct Model {
     pub uuid: Vec<u8>,
     pub nombre: String,
     pub apellido: String,
-    pub fecha_nacimiento: Date,
     #[sea_orm(column_type = "Binary(16)")]
     pub direccion_id: Vec<u8>,
-    #[sea_orm(column_type = "Binary(16)")]
+    #[sea_orm(column_type = "Binary(16)", nullable)]
     pub pariente_a_cargo: Option<Vec<u8>>,
 }
 
@@ -42,7 +41,7 @@ impl Related<super::ubicacion::Entity> for Entity {
     }
 }
 
-// para referencias a los hijos 
+// para referencias a los hijos
 pub struct SelfLinkHijos;
 // para referencias al pariente
 pub struct SelfLinkPariente;

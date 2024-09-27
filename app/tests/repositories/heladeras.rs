@@ -17,7 +17,7 @@ async fn test_heladeras_query(ctx: &mut TestContext) {
     let heladeras = heladeras
         .into_iter()
         .map(|h| (Uuid::from_slice(&h.uuid).unwrap(), h.cantidad_viandas))
-        .collect::<Vec<(Uuid, i16)>>();
+        .collect::<Vec<(Uuid, i32)>>();
 
     let heladeras_esperados = Vec::from([
         (Uuid::from_u128(1), 2),
@@ -55,7 +55,6 @@ async fn test_join_heladeras(ctx: &mut TestContext) {
         },
         Some(UbicacionModel {
             uuid: Uuid::from_u128(1).into(),
-            nombre: "Dom Pablo".into(),
             latitud: -33.15,
             longitud: -60.49,
             direccion_id: Uuid::from_u128(1).into(),

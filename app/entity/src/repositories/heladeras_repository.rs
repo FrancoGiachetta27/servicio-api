@@ -44,11 +44,10 @@ impl Repository<Model, ActiveModel> for HeladeraRepository {
         Heladera::find().filter(filter).all(&self.db).await
     }
 
-    async fn save(
-        &self,
-        insertable: ActiveModel,
-    ) -> Result<InsertResult<ActiveModel>, sea_orm::DbErr> {
-        Heladera::insert(insertable).exec(&self.db).await
+    async fn save(&self, insertable: ActiveModel) -> Result<Model, sea_orm::DbErr> {
+        Heladera::insert(insertable)
+            .exec_with_returning(&self.db)
+            .await
     }
 
     async fn update(&self, insertable: ActiveModel) -> Result<Model, sea_orm::DbErr> {

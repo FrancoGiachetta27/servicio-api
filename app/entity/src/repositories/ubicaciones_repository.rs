@@ -1,8 +1,6 @@
 use sea_orm::sea_query::{IntoCondition, SimpleExpr};
-use sea_orm::{Condition, Statement};
-use sea_orm::{
-    DatabaseConnection, DeleteResult, EntityOrSelect, EntityTrait, InsertResult, QueryFilter,
-};
+use sea_orm::Statement;
+use sea_orm::{DatabaseConnection, DeleteResult, EntityOrSelect, EntityTrait, QueryFilter};
 use uuid::Uuid;
 
 use super::Repository;
@@ -47,11 +45,10 @@ impl Repository<Model, ActiveModel> for UbicacionRepository {
             .await
     }
 
-    async fn save(
-        &self,
-        insertable: ActiveModel,
-    ) -> Result<InsertResult<ActiveModel>, sea_orm::DbErr> {
-        Ubicacion::insert(insertable).exec(&self.db).await
+    async fn save(&self, insertable: ActiveModel) -> Result<Model, sea_orm::DbErr> {
+        Ubicacion::insert(insertable)
+            .exec_with_returning(&self.db)
+            .await
     }
 
     async fn update(&self, insertable: ActiveModel) -> Result<Model, sea_orm::DbErr> {

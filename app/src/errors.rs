@@ -72,8 +72,8 @@ impl From<std::io::Error> for AppError {
 }
 
 impl From<DbErr> for AppError {
-    fn from(value: DbErr) -> Self {
-        Self::DdError(value)
+    fn from(value: DbErr) -> Self {
+        Self::DdError(value)
     }
 }
 

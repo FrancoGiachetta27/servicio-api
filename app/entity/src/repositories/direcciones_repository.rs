@@ -21,11 +21,10 @@ impl Repository<Model, ActiveModel> for DireccionRepository {
         Direccion::find().all(&self.db).await
     }
 
-    async fn save(
-        &self,
-        insertable: ActiveModel,
-    ) -> Result<sea_orm::InsertResult<ActiveModel>, sea_orm::DbErr> {
-        Direccion::insert(insertable).exec(&self.db).await
+    async fn save(&self, insertable: ActiveModel) -> Result<Model, sea_orm::DbErr> {
+        Direccion::insert(insertable)
+            .exec_with_returning(&self.db)
+            .await
     }
 
     async fn update(&self, insertable: ActiveModel) -> Result<Model, sea_orm::DbErr> {

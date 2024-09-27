@@ -7,7 +7,6 @@ use sea_orm::entity::prelude::*;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false, column_type = "Binary(16)")]
     pub uuid: Vec<u8>,
-    pub nombre: String,
     #[sea_orm(column_type = "Double")]
     pub latitud: f64,
     #[sea_orm(column_type = "Double")]
@@ -26,9 +25,9 @@ pub enum Relation {
         on_delete = "NoAction"
     )]
     Direccion,
-    #[sea_orm(has_one = "super::heladera::Entity")]
+    #[sea_orm(has_many = "super::heladera::Entity")]
     Heladera,
-    #[sea_orm(has_one = "super::persona_vulnerable::Entity")]
+    #[sea_orm(has_many = "super::persona_vulnerable::Entity")]
     PersonaVulnerable,
 }
 

@@ -9,13 +9,13 @@ pub struct Model {
     pub uuid: Vec<u8>,
     #[sea_orm(column_type = "Binary(16)")]
     pub direccion_id: Vec<u8>,
-    pub cantidad_viandas: i16,
+    pub cantidad_viandas: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(
-        belongs_to = "super::ubicacion::Entity",        
+        belongs_to = "super::ubicacion::Entity",
         from = "Column::DireccionId",
         to = "super::ubicacion::Column::Uuid",
         on_update = "NoAction",

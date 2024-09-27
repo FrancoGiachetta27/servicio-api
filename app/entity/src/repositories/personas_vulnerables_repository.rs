@@ -1,7 +1,6 @@
 use sea_orm::sea_query::SimpleExpr;
 use sea_orm::{
-    sea_query::IntoCondition, DatabaseConnection, DeleteResult, EntityOrSelect, EntityTrait,
-    InsertResult, QueryFilter,
+    sea_query::IntoCondition, DatabaseConnection, DeleteResult, EntityTrait, QueryFilter,
 };
 use sea_orm::{Linked, Statement};
 use uuid::Uuid;
@@ -12,7 +11,7 @@ use crate::ubicacion;
 
 #[derive(Clone)]
 pub struct PersonaVulnerableRepository {
-    db: DatabaseConnection,
+    pub db: DatabaseConnection,
 }
 
 impl PersonaVulnerableRepository {
@@ -61,11 +60,10 @@ impl Repository<Model, ActiveModel> for PersonaVulnerableRepository {
         PersonaVulnerable::find().filter(filter).all(&self.db).await
     }
 
-    async fn save(
-        &self,
-        insertable: ActiveModel,
-    ) -> Result<InsertResult<ActiveModel>, sea_orm::DbErr> {
-        PersonaVulnerable::insert(insertable).exec(&self.db).await
+    async fn save(&self, insertable: ActiveModel) -> Result<Model, sea_orm::DbErr> {
+        PersonaVulnerable::insert(insertable)
+            .exec_with_returning(&self.db)
+            .await
     }
 
     async fn update(&self, insertable: ActiveModel) -> Result<Model, sea_orm::DbErr> {

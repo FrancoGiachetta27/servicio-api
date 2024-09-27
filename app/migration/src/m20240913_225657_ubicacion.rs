@@ -14,7 +14,6 @@ impl MigrationTrait for Migration {
                     .table(Ubicacion::Table)
                     .if_not_exists()
                     .col(uuid(Ubicacion::Uuid).primary_key().not_null())
-                    .col(string(Ubicacion::Nombre))
                     .col(double(Ubicacion::Latitud))
                     .col(double(Ubicacion::Longitud))
                     .col(uuid(Ubicacion::DireccionId).not_null())
@@ -40,7 +39,6 @@ impl MigrationTrait for Migration {
 pub enum Ubicacion {
     Table,
     Uuid,
-    Nombre,
     Latitud,
     Longitud,
     DireccionId,
