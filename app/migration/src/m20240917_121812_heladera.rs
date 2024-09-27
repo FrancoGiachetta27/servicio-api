@@ -1,6 +1,6 @@
 use sea_orm_migration::{prelude::*, schema::*};
 
-use crate::m20240913_225704_direccion::Direccion;
+use crate::m20240913_225657_ubicacion::Ubicacion;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -11,17 +11,16 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(Ubicacion::Table)
+                    .table(Heladera::Table)
                     .if_not_exists()
-                    .col(uuid(Ubicacion::Uuid).primary_key().not_null())
-                    .col(double(Ubicacion::Latitud))
-                    .col(double(Ubicacion::Longitud))
-                    .col(uuid(Ubicacion::DireccionId).not_null())
+                    .col(uuid(Heladera::Uuid).primary_key().not_null())
+                    .col(uuid(Heladera::DireccionId).not_null())
+                    .col(integer(Heladera::CantidadViandas))
                     .foreign_key(
                         ForeignKey::create()
-                            .name("fk-ubic-direccion_id")
-                            .from(Ubicacion::Table, Ubicacion::DireccionId)
-                            .to(Direccion::Table, Direccion::Uuid),
+                            .name("fk-hela-direccion_id")
+                            .from(Heladera::Table, Heladera::DireccionId)
+                            .to(Ubicacion::Table, Ubicacion::Uuid),
                     )
                     .to_owned(),
             )
@@ -30,16 +29,15 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(Ubicacion::Table).to_owned())
+            .drop_table(Table::drop().table(Heladera::Table).to_owned())
             .await
     }
 }
 
 #[derive(DeriveIden)]
-pub enum Ubicacion {
+enum Heladera {
     Table,
     Uuid,
-    Latitud,
-    Longitud,
     DireccionId,
+    CantidadViandas,
 }
