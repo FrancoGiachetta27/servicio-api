@@ -48,7 +48,6 @@ pub struct SelfLinkPariente;
 
 impl Linked for SelfLinkHijos {
     type FromEntity = Entity;
-
     type ToEntity = Entity;
 
     fn link(&self) -> Vec<RelationDef> {

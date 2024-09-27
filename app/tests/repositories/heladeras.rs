@@ -4,14 +4,15 @@ use entity::{
     ubicacion::{Entity as Ubicacion, Model as UbicacionModel},
 };
 use sea_orm::ColumnTrait;
-use test_context::test_context;
+use serial_test::file_serial;
 use uuid::Uuid;
 
 use crate::common::TestContext;
 
-#[test_context(TestContext)]
 #[tokio::test]
-async fn test_heladeras_query(ctx: &mut TestContext) {
+#[file_serial]
+async fn test_heladeras_query() {
+    let ctx = TestContext::setup_with_migration().await;
     let heladeras = ctx.heladeras_repo.all().await.unwrap();
 
     let heladeras = heladeras
@@ -34,11 +35,14 @@ async fn test_heladeras_query(ctx: &mut TestContext) {
     ]);
 
     assert_eq!(heladeras_esperados, heladeras);
+
+    ctx.teardown().await;
 }
 
-#[test_context(TestContext)]
 #[tokio::test]
-async fn test_join_heladeras(ctx: &mut TestContext) {
+#[file_serial]
+async fn test_join_heladeras() {
+    let ctx = TestContext::setup_with_migration().await;
     let uuid = Uuid::from_u128(1);
 
     let heladera_ubicacion = ctx
@@ -62,4 +66,6 @@ async fn test_join_heladeras(ctx: &mut TestContext) {
     )];
 
     assert_eq!(heladera_ubicacion_esperada, heladera_ubicacion);
+
+    ctx.teardown().await
 }

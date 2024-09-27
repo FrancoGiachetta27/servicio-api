@@ -63,7 +63,7 @@ pub fn request_georef_direccion(
     provincia: Option<String>,
 ) -> Result<ureq::Response, ureq::Error> {
     let endpoint = GEOREF.to_string() + "direcciones";
-    let direccion = calle + &altura.to_string();
+    let direccion = format!("{} {}", calle, altura);
 
     let query_params: [(&str, &str); 3] = [
         ("direccion", &direccion),

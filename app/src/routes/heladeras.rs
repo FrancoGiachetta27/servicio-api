@@ -24,10 +24,25 @@ use crate::{
 
 use super::{Direccion, ParamsRecomendacion};
 
+// Para poder deserializarlo con json despues
 #[derive(Serialize, Deserialize)]
-pub struct HeladeraIn {
+pub struct HeladeraInfo {
     direccion: Direccion,
     cantidad_viandas: u16,
+}
+
+impl HeladeraInfo {
+    pub fn new(direccion: Direccion, cantidad_viandas: u16) -> Self {
+        Self {
+            direccion,
+            cantidad_viandas,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct HeladeraIn {
+    pub heladeras: Vec<HeladeraInfo>,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -45,7 +60,7 @@ impl HeladeraOut {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct RecomendacionHeladera {
     pub ubicacion: Ubicacion,
     pub cantidad_recomendada: u16,
@@ -99,7 +114,10 @@ pub async fn get_recomendacion(
     let heladera_ubicacion = state
         .heladeras_repo
         .find_related(
-            Some(Column::CantidadViandas.gte(stock_minimo)),
+            match stock_minimo {
+                Some(sm) => Some(Column::CantidadViandas.gte(sm)),
+                None => None,
+            },
             ubicacion::Entity,
         )
         .await?;
@@ -139,13 +157,13 @@ pub async fn get_recomendacion(
 
 pub async fn post_heladeras(
     State(state): State<AppState>,
-    Json(heladeras): Json<Vec<HeladeraIn>>,
+    Json(heladeras): Json<HeladeraIn>,
 ) -> Result<Json<Vec<HeladeraOut>>, AppError> {
     let ubicaciones = state.ubicaciones_repo.all().await?;
 
     let mut insersiones = Vec::new();
 
-    for h in heladeras {
+    for h in heladeras.heladeras {
         let direccion = h.direccion;
 
         let georef_response = georef::request_georef_direccion(

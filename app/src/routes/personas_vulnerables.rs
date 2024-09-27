@@ -20,12 +20,34 @@ use crate::{
 
 use super::{utils::distancia_haversine, Direccion, ParamsRecomendacion};
 
-#[derive(Serialize, Deserialize)]
+// Para poder deserializarlo con json despues
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PersonaInfo {
+    nombre: String,
+    apellido: String,
+    direccion: Direccion,
+    hijos: Vec<PersonaInfo>,
+}
+
+impl PersonaInfo {
+    pub fn new(
+        nombre: String,
+        apellido: String,
+        direccion: Direccion,
+        hijos: Vec<PersonaInfo>,
+    ) -> Self {
+        Self {
+            nombre,
+            apellido,
+            direccion,
+            hijos,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PersonaIn {
-    pub nombre: String,
-    pub apellido: String,
-    pub direccion: Direccion,
-    pub hijos: Option<Vec<PersonaIn>>,
+    pub personas: Vec<PersonaInfo>,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -153,13 +175,13 @@ pub async fn get_recomendacion(
 
 pub async fn post_personas_vulnerables(
     State(state): State<AppState>,
-    Json(personas): Json<Vec<PersonaIn>>,
+    Json(personas): Json<PersonaIn>,
 ) -> Result<Json<Vec<PersonaOut>>, AppError> {
     let ubicaciones = state.ubicaciones_repo.all().await?;
 
     let mut insersiones = Vec::new();
 
-    for p in personas {
+    for p in personas.personas {
         let direccion = p.direccion;
 
         let georef_response = georef::request_georef_direccion(
@@ -169,6 +191,7 @@ pub async fn post_personas_vulnerables(
         )?;
 
         let ubicacion_georef: DireccionGeoRef = georef_response.into_json()?;
+
         let ubicacion_georef = ubicacion_georef.direcciones.first().unwrap();
 
         let ubicacion_existente = ubicaciones
@@ -183,8 +206,6 @@ pub async fn post_personas_vulnerables(
             Some(u) => u,
             None => &guardar_ubicacion(&state, ubicacion_georef).await?,
         };
-
-        let uuid_padre = Uuid::new_v4();
 
         let persona_padre_model = ActivePersona {
             uuid: Set(Uuid::new_v4().into()),
@@ -205,14 +226,14 @@ pub async fn post_personas_vulnerables(
             ubicacion_georef.into(),
         ));
 
-        if let Some(hijos) = p.hijos {
-            for h in hijos {
+        if !p.hijos.is_empty() {
+            for h in p.hijos {
                 let persona_hijo_model = ActivePersona {
                     uuid: Set(Uuid::new_v4().into()),
                     nombre: Set(h.nombre),
                     apellido: Set(h.apellido),
                     direccion_id: Set(uuid_ubicacion.uuid.clone()),
-                    pariente_a_cargo: Set(Some(uuid_padre.clone().into())),
+                    pariente_a_cargo: Set(Some(persona_saved.uuid.clone().into())),
                 };
 
                 let hijo_saved = state
@@ -228,5 +249,6 @@ pub async fn post_personas_vulnerables(
             }
         }
     }
+
     Ok(Json(insersiones))
 }

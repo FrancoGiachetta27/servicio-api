@@ -4,14 +4,16 @@ use entity::{
     ubicacion::{Entity as Ubicacion, Model as UbicacionModel},
 };
 use sea_orm::ColumnTrait;
-use test_context::test_context;
+
+use serial_test::file_serial;
 use uuid::Uuid;
 
 use crate::common::TestContext;
 
-#[test_context(TestContext)]
 #[tokio::test]
-async fn test_personas_query(ctx: &mut TestContext) {
+#[file_serial]
+async fn test_personas_query() {
+    let ctx = TestContext::setup_with_migration().await;
     let nombres = ctx.personas_repo.all().await.unwrap();
 
     let nombres = nombres
@@ -34,11 +36,14 @@ async fn test_personas_query(ctx: &mut TestContext) {
     ]);
 
     assert_eq!(nombres_esperados, nombres);
+
+    ctx.teardown().await;
 }
 
-#[test_context(TestContext)]
 #[tokio::test]
-async fn test_personas_join(ctx: &mut TestContext) {
+#[file_serial]
+async fn test_personas_join() {
+    let ctx = TestContext::setup_with_migration().await;
     let uuid = Uuid::from_u128(1);
 
     let persona_ubicacion = ctx
@@ -64,11 +69,15 @@ async fn test_personas_join(ctx: &mut TestContext) {
     )];
 
     assert_eq!(persona_ubicacion_esperada, persona_ubicacion);
+
+    ctx.teardown().await;
 }
 
-#[test_context(TestContext)]
 #[tokio::test]
-async fn test_personas_auto_join(ctx: &mut TestContext) {
+#[file_serial]
+async fn test_personas_auto_join() {
+    let ctx = TestContext::setup_with_migration().await;
+
     let uuid = Uuid::from_u128(1);
 
     let persona_hijos = ctx
@@ -111,4 +120,6 @@ async fn test_personas_auto_join(ctx: &mut TestContext) {
     )];
 
     assert_eq!(persona_hijos_esperado, persona_hijos);
+
+    ctx.teardown().await;
 }

@@ -1,30 +1,38 @@
+use std::vec;
+
 use axum_test::TestServer;
-use migration::{Migrator, MigratorTrait};
 use rstest::rstest;
 use serde_json::json;
+use serial_test::file_serial;
 use servicio_apiV2::routes::{
-    personas_vulnerables::{PersonaIn, PersonaOut, RecomendacionPersonaVulnerable},
+    personas_vulnerables::{PersonaIn, PersonaInfo, PersonaOut, RecomendacionPersonaVulnerable},
     Coordenadas, Direccion, Ubicacion,
 };
 use tokio;
+
+use crate::common::TestContext;
 
 use super::test_utils::setup_app;
 
 #[rstest]
 #[case("Medrano", 500, Some("CABA"), 10.0, vec![
-    ("Maria", "Perez", 1),
+    ("Maria", "Perez", 2),
     ("Nicole", "Perez", 1),
     ("Florencia", "Perez", 1)
 ])]
 #[tokio::test]
-async fn test_endpoints_recomendaciones(
+#[file_serial]
+async fn test_personas_endpoints_recomendaciones(
     #[case] calle: &str,
     #[case] altura: i16,
     #[case] provincia: Option<&str>,
     #[case] radio_max: f64,
     #[case] recomendaciones_esperadas: Vec<(&str, &str, u16)>,
 ) {
-    let (app, _) = setup_app().await;
+    let ctx = TestContext::setup_with_migration().await;
+
+    let (app, _) = setup_app(ctx.db.clone()).await;
+
     let server = TestServer::new(app).unwrap();
 
     let response = server
@@ -57,106 +65,113 @@ async fn test_endpoints_recomendaciones(
         .collect::<Vec<(&str, &str, u16)>>();
 
     assert_eq!(recomendaciones_esperadas, recomendaciones);
+
+    ctx.teardown().await;
 }
 
 #[rstest]
-#[case(vec![PersonaIn {
-    nombre: "Pepe".to_string(),
-    apellido: "Perez".to_string(),
-    direccion: Direccion {
-        provincia: "CABA".to_string(),
-        calle: "Balcarce".to_string(),
-        altura: 78
+#[case(PersonaIn {
+    personas: vec![PersonaInfo::new(
+    "Pepe".to_string(),
+    "Perez".to_string(),
+    Direccion {
+        provincia: "Buenos Aires".to_string(),
+        calle: "CALLE 13".to_string(),
+        altura: 45
     },
-    hijos: None
-}], vec![PersonaOut::new(
+    vec![]
+)]}, vec![PersonaOut::new(
     "Pepe".to_string(), 
     "Perez".to_string(), 
     Ubicacion {
         direccion: Direccion {
-            provincia: "Ciudad Autónoma de Buenos Aires".to_string(),
-            calle: "BALCARCE".to_string(),
-            altura: 78
+            provincia: "Buenos Aires".to_string(),
+            calle: "CALLE 13".to_string(),
+            altura: 45
         },
-        coordenadas: Coordenadas { latitud: -34.60856585458922, longitud: -58.37072506895037 }
+        coordenadas: Coordenadas { latitud: -34.842910871483994, longitud: -62.47609164477472 }
 })])]
-#[case(vec![PersonaIn {
-    nombre: "Pepe".to_string(),
-    apellido: "Perez".to_string(),
-    direccion: Direccion {
-        provincia: "CABA".to_string(),
-        calle: "Mozart".to_string(),
-        altura: 2300
-    },
-    hijos: Some(vec![
-        PersonaIn {
-            nombre: "Pepa".to_string(),
-            apellido: "Perez".to_string(),
-            direccion: Direccion {
-                provincia: "CABA".to_string(),
-                calle: "Mozart".to_string(),
-        altura: 2300
+#[case(PersonaIn {
+    personas: vec![
+        PersonaInfo::new(
+            "Pepe".to_string(),
+            "Perez".to_string(),
+            Direccion {
+                provincia: "Buenos Aires".to_string(),
+                calle: "CALLE 13".to_string(),
+                altura: 45
             },
-            hijos: None
-        },
-        PersonaIn {
-            nombre: "Pepito".to_string(),
-            apellido: "Perez".to_string(),
-            direccion: Direccion {
-                provincia: "CABA".to_string(),
-                calle: "Mozart".to_string(),
-                altura: 2300
-            },
-            hijos: None
-        }
-    ])
-}], vec![PersonaOut {
+            vec![
+                PersonaInfo::new(
+                    "Pepa".to_string(),
+                    "Perez".to_string(),
+                    Direccion {
+                        provincia: "Buenos Aires".to_string(),
+                        calle: "CALLE 13".to_string(),
+                        altura: 45
+                    },
+                    vec![]
+                ),
+                PersonaInfo::new(
+                    "Pepito".to_string(),
+                    "Perez".to_string(),
+                    Direccion {
+                        provincia: "Buenos Aires".to_string(),
+                        calle: "CALLE 13".to_string(),
+                        altura: 45
+                    },
+                    vec![]
+                )
+            ]
+)]}, vec![PersonaOut {
     nombre: "Pepe".to_string(), 
     apellido: "Perez".to_string(), 
     direccion: Ubicacion {
         direccion: Direccion {
-            provincia: "Ciudad Autónoma de Buenos Aires".to_string(),
-            calle: "MOZART".to_string(),
-            altura: 2300
+            provincia: "Buenos Aires".to_string(),
+            calle: "CALLE 13".to_string(),
+            altura: 45
         },
-        coordenadas: Coordenadas { latitud: -34.6594301720661, longitud: -58.4690932428077 }
-}},
-PersonaOut {
-    nombre: "Pepa".to_string(), 
-    apellido: "Perez".to_string(), 
-    direccion: Ubicacion {
-        direccion: Direccion {
-            provincia: "Ciudad Autónoma de Buenos Aires".to_string(),
-            calle: "MOZART".to_string(),
-            altura: 2300
-        },
-        coordenadas: Coordenadas { latitud: -34.6594301720661, longitud: -58.4690932428077 }
-}},PersonaOut {
-    nombre: "Pepito".to_string(), 
-    apellido: "Perez".to_string(), 
-    direccion: Ubicacion {
-        direccion: Direccion {
-            provincia: "Ciudad Autónoma de Buenos Aires".to_string(),
-            calle: "MOZART".to_string(),
-            altura: 2300
-        },
-        coordenadas: Coordenadas { latitud: -34.6594301720661, longitud: -58.4690932428077 }
+        coordenadas: Coordenadas { latitud: -34.842910871483994, longitud: -62.47609164477472 }
+    }},
+    PersonaOut {
+        nombre: "Pepa".to_string(), 
+        apellido: "Perez".to_string(), 
+        direccion: Ubicacion {
+            direccion: Direccion {
+                provincia: "Buenos Aires".to_string(),
+                calle: "CALLE 13".to_string(),
+                altura: 45
+            },
+            coordenadas: Coordenadas { latitud: -34.842910871483994, longitud: -62.47609164477472 }
+    }},
+    PersonaOut {
+        nombre: "Pepito".to_string(), 
+        apellido: "Perez".to_string(), 
+        direccion: Ubicacion {
+            direccion: Direccion {
+                provincia: "Buenos Aires".to_string(),
+                calle: "CALLE 13".to_string(),
+                altura: 45
+            },
+            coordenadas: Coordenadas { latitud: -34.842910871483994, longitud: -62.47609164477472 }
 }}])]
 #[tokio::test]
+#[file_serial]
 async fn test_endpoints_post_personas(
-    #[case] personas: Vec<PersonaIn>,
+    #[case] personas: PersonaIn,
     #[case] resultado_esperado: Vec<PersonaOut>,
 ) {
-    let (app, db) = setup_app().await;
+    let ctx = TestContext::setup_with_migration().await;
+    let (app, _) = setup_app(ctx.db.clone()).await;
     let server = TestServer::new(app).unwrap();
 
     let response = server
         .post("/api/personas_vulnerables")
         .json(&personas)
         .await;
-    let resultado: Vec<PersonaOut> = response.json();
 
-    assert_eq!(resultado_esperado, resultado);
+    response.assert_json(&resultado_esperado);
 
-    Migrator::down(&db, None).await.ok();
+    ctx.teardown().await;
 }
