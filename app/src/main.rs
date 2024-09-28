@@ -13,16 +13,22 @@ use state::AppState;
 
 #[tokio::main]
 async fn main() {
+    #[cfg(feature = "local")]
+    dotenv::dotenv().expect("could not load .env file");
+
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::DEBUG)
         .init();
-
     let port = env::var("PORT").expect("Missing port number");
     let port = port.parse::<u16>().expect("Invalid port given");
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), port);
 
     let db = {
+        #[cfg(not(feature = "local"))]
         let db_url = env::var("DATABASE_URL").unwrap();
+        #[cfg(feature = "local")]
+        let db_url = env::var("DATABASE_LOCAL").unwrap();
+
         match Database::connect(db_url).await {
             Ok(db) => db,
             Err(e) => panic!("No se pudo conectar a la base de datos con url: {}", e),
