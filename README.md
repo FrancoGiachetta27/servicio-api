@@ -9,12 +9,33 @@ Verificar la instalación correcta:
 ## Preparar entorno: 
 
 Rust nos provee `cargo`, un gestor de dependencias propio que nos permite estandarizar las dependeicas y sus versiones. 
-Para levantar el proyecto, simplemente corremos este comando (estando dentro de `./app`):
+Para levantar el proyecto, simplemente corremos este comando (estando dentro de `/app`):
 
 `cargo run`
 
 Los tiempos de compilación de rust no son los más rápidos, por lo que la primera vez tardará unos minutos. Luego, a menos
 se haya realizado algún cambio en el código, tardará menos ya que el programa estará cacheado.
+
+## Tests
+
+Para correr los test, es necesario tener una base de datos preestablecida. Luego, tenemos que crear un archivo `.env` a la 
+altura de `/app`. Dentro, tendremos que setear la siguiente vairable de entorno:
+
+```env
+  DATABASE_ENV=mysql://user:password@localhost/dbname
+```
+
+Donde:
+  * `user`: es el nombre de la conexión que mantenemos en mysql (`root` por defecto).
+  * `passaword`: si no la establecimos, generalmente es la contraseña de la compu.
+  * `dbname`: nombre de la base de datos que creamos.
+
+> IMPORTANTE: Los tests van a formatear la base de datos para poder funcionar. Recomendación, crear una base exclusivamente 
+  para esto.
+
+Para correr los test, usar este comando:
+
+`cargo test`
 
 # Uso del Servicio
 
@@ -39,14 +60,14 @@ Response:
     "direccion": {
       "direccion": {
         "calle": "string",
-        "altura": int,
+        "altura": "int",
         "provincia": "string",
       },
-      coordenadas: {
-        "latitud": float,
-        "longitud": float
+      "coordenadas": {
+        "latitud": "float",
+        "longitud": "float"
       },
-      "cantidad_recomendada": int
+      "cantidad_recomendada": "int"
     },
   }
   ```
@@ -59,16 +80,16 @@ Descripción: a partir de una persona, la persiste en la base de datos
 Body: 
   ```json
   {
-    "personas": [*(info) 
+    "personas": [
       {
         "nombre": "string",
         "apellido": "string",
         "direccion": {
           "calle": "string",
-          "altura": int,
+          "altura": "int",
           "provincia": "string",
         }
-        hijos: [(info)]
+        "hijos": ["(persona)"]
       }
     ]
   }
@@ -82,12 +103,12 @@ Respuesta:
       "direccion": {
         "direccion": {
           "calle": "string",
-          "altura": int,
+          "altura": "int",
           "provincia": "string",
         },
         "coordenadas": {
-          "latitud": float,
-          "longitud": float
+          "latitud": "float",
+          "longitud": "float"
         },
       },
     ]
@@ -110,14 +131,14 @@ Response:
     "direccion": {
       "direccion": {
         "calle": "string",
-        "altura": int,
+        "altura": "int",
         "provincia": "string",
       },
       "coordenadas": {
-        "latitud": float,
-        "longitud": float
+        "latitud": "float",
+        "longitud": "float"
       },
-      "cantidad_viandas": int
+      "cantidad_viandas": "int"
     },
   }
   ```
@@ -128,12 +149,12 @@ Descripción: a partir de una heladera, la persiste en la base de datos
 Body: 
   ```json
   {
-    "heladeras": [*(info) 
+    "heladeras": [
       {
-        "cantidad_viandas": int,
+        "cantidad_viandas": "int",
         "direccion": {
           "calle": "string",
-          "altura": int,
+          "altura": "int",
           "provincia": "string",
         }
       }
@@ -147,15 +168,15 @@ Respuesta:
       "direccion": {
         "direccion": {
           "calle": "string",
-          "altura": int,
+          "altura": "int",
           "provincia": "string",
         },
         "coordenadas": {
-          "latitud": float,
-          "longitud": float
+          "latitud": "float",
+          "longitud": "float"
         },
       },
-      "cantidad_viandas": int
+      "cantidad_viandas": "int"
     ]
   }
   ```
