@@ -23,7 +23,6 @@ entity = { path = "entity" }
 axum = { version = "0.7.5" }
 sea-orm = { workspace = true }
 uuid = { workspace = true }
-chrono = "0.4.38"
 tokio = { version = "1.40.0", features = ["full"] }
 ureq = { version = "2.10.1", features = ["json"] }
 serde = "1.0.210"
@@ -33,7 +32,6 @@ tracing = "0.1.40"
 axum-macros = "0.4.1"
 dotenv = "0.15.0"
 test-case = "3.3.1"
-test-context = "0.3.0"
 rstest = "0.22.0"
 futures = "0.3.30"
 axum-test = "16.0.0"
