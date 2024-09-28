@@ -13,7 +13,6 @@ use state::AppState;
 
 #[tokio::main]
 async fn main() {
-    #[cfg(feature = "local")]
     dotenv::dotenv().expect("could not load .env file");
 
     tracing_subscriber::fmt()
