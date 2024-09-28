@@ -14,8 +14,11 @@ Rust nos provee `cargo`, un gestor de dependencias propio que nos permite estand
 Para levantar el proyecto, simplemente corremos este comando (estando dentro de `/app`):
 
 ```sh
-cargo run
+cargo -F local run
 ```
+
+> La flag F le indica al compilador que use la feature ´local´ (que se encuentra definida en el Cargo.toml), esto permite hacer de la
+> compilación condicional (ver su uso en main.rs).
 
 Los tiempos de compilación de rust no son los más rápidos, por lo que la primera vez tardará unos minutos. Luego, a menos
 se haya realizado algún cambio en el código, tardará menos ya que el programa estará cacheado.
