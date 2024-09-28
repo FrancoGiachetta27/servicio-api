@@ -3,10 +3,7 @@ pub mod heladeras_repository;
 pub mod personas_vulnerables_repository;
 pub mod ubicaciones_repository;
 
-use sea_orm::{
-    prelude::async_trait::async_trait, sea_query::IntoCondition, ActiveModelTrait, DeleteResult,
-    ModelTrait, Statement,
-};
+use sea_orm::{sea_query::IntoCondition, ActiveModelTrait, DeleteResult, ModelTrait, Statement};
 use uuid::Uuid;
 
 #[macro_export]

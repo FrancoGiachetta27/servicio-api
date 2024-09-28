@@ -1,8 +1,7 @@
 use axum::Router;
-use sea_orm::{Database, DatabaseConnection};
+use sea_orm::DatabaseConnection;
 use servicio_apiV2::routes;
 use servicio_apiV2::state::AppState;
-use std::env;
 
 pub async fn setup_app(db: DatabaseConnection) -> (Router, DatabaseConnection) {
     let state = AppState::new(db.clone()).await.unwrap();
