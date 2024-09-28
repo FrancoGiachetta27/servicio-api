@@ -13,8 +13,6 @@ use state::AppState;
 
 #[tokio::main]
 async fn main() {
-    dotenv::dotenv().expect("could not load .env file");
-
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::DEBUG)
         .init();
