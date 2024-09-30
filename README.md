@@ -56,7 +56,7 @@ Para correr los test, usar este comando:
 cargo test
 ```
 
-# Uso del Servicio
+# API
 
 El propósito de este servicio es devolver posibles ubicaciones (a modo de recomendación) a partir de una ubicación y un radio máximo
 sobre el que buscar.
