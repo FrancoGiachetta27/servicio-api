@@ -1,3 +1,12 @@
+# Uso del servicio
+
+Para usar este servicio hay 2 formas: remotamente o remotamente.
+
+1. Actualmente este servicio se encuantra activo en la plataforma [railway](https://railway.app/), lo que nos permite evitar tener que levantar el proyecto localmente para su uso.
+Para esto, simplemente tenemos que enviar requests a este url: <https://servicio-apiv2-production.up.railway.app/>
+
+2. Para levantar el proyecto localmente, seguir la guía de abajo.
+
 # Setup
 
 Instalar [rust-lang1.81.0](https://www.rust-lang.org/es/tools/install)
