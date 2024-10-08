@@ -129,8 +129,8 @@ Body:
 Respuesta:
 
   ```json
-  {
-    [
+  [
+    {
       "nombre": "string",
       "apellido": "string",
       "direccion": {
@@ -144,8 +144,8 @@ Respuesta:
           "longitud": "float"
         },
       },
-    ]
-  }
+    }
+  ]
   ```
 
 Method: `GET`
