@@ -76,25 +76,27 @@ Params:
 * `provincia`: `string` / `null`
 * `radio_max`: `float`
 
-Response:
+Respuesta:
 
   ```json
-  {
-    "nombre": "string",
-    "apellido": "string",
-    "direccion": {
+  [
+    {
+      "nombre": "string",
+      "apellido": "string",
       "direccion": {
-        "calle": "string",
-        "altura": "int",
-        "provincia": "string",
+        "direccion": {
+          "calle": "string",
+          "altura": "int",
+          "provincia": "string",
+        },
+        "coordenadas": {
+          "latitud": "float",
+          "longitud": "float"
+        },
+        "cantidad_recomendada": "int"
       },
-      "coordenadas": {
-        "latitud": "float",
-        "longitud": "float"
-      },
-      "cantidad_recomendada": "int"
-    },
-  }
+    }
+  ]
   ```
 
 > Aclararión: la cantidad recomendada representa la persona vulnerable + sus hijos.
@@ -116,8 +118,8 @@ Body:
         "direccion": {
           "calle": "string",
           "altura": "int",
-          "provincia": "string",
-        }
+          "provincia": "string"
+        },
         "hijos": ["(persona)"]
       }
     ]
@@ -135,7 +137,7 @@ Respuesta:
         "direccion": {
           "calle": "string",
           "altura": "int",
-          "provincia": "string",
+          "provincia": "string"
         },
         "coordenadas": {
           "latitud": "float",
@@ -165,20 +167,22 @@ Params:
 Response:
 
   ```json
-  {
-    "direccion": {
-      "direccion": {
-        "calle": "string",
-        "altura": "int",
-        "provincia": "string",
+  [
+    {
+      "ubicacion": {
+        "direccion": {
+          "calle": "string",
+          "altura": "int",
+          "provincia": "string",
+        },
+        "coordenadas": {
+          "latitud": "float",
+          "longitud": "float"
+        },
+        "cantidad_recomendada": "int"
       },
-      "coordenadas": {
-        "latitud": "float",
-        "longitud": "float"
-      },
-      "cantidad_viandas": "int"
-    },
-  }
+    }
+  ]
   ```
 
 Método: `POST`
@@ -197,7 +201,7 @@ Body:
         "direccion": {
           "calle": "string",
           "altura": "int",
-          "provincia": "string",
+          "provincia": "string"
         }
       }
     ]
@@ -213,7 +217,7 @@ Respuesta:
         "direccion": {
           "calle": "string",
           "altura": "int",
-          "provincia": "string",
+          "provincia": "string"
         },
         "coordenadas": {
           "latitud": "float",
